@@ -2,7 +2,7 @@
 
 An end-to-end ETL pipeline built to demonstrate practical data engineering skills — from raw messy CSV data through Python transformation into a star-schema SQLite database, with a Power BI dashboard on top for business reporting.
 
-I built this project because I've spent years working in IT support environments and wanted to show what's possible when you apply data engineering to the kind of operational data that service desk teams generate every day but rarely analyze properly.
+I built this to challenge myself on the upstream side of data: ETL design, schema modeling, pipeline architecture, skills I don't use in my current IT role but need to break into data engineering. The service desk domain was a natural fit since it's territory I know well, which let me focus on learning the engineering without getting lost in an unfamiliar problem space.
 
 ---
 
