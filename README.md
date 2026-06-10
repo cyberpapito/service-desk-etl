@@ -51,23 +51,23 @@ Three-page Power BI dashboard built on top of the processed data.
 
 ## Getting started
 
-```bash
 git clone https://github.com/cyberpapito/service-desk-etl.git
 cd service-desk-etl
+
+# Create and activate virtual environment
 python -m venv venv
-venv\Scripts\activate
+venv\Scripts\activate        # Windows
+source venv/bin/activate     # Mac/Linux
+
+# Install dependencies
 pip install -r requirements.txt
-```
 
-Generate the sample data:
-```bash
+# Generate sample data
 python etl/generate_data.py
-```
 
-Run the pipeline:
-```bash
+# Run the pipeline
 python etl/pipeline.py
-```
+
 
 The database lands at `data/processed/service_desk.db`. Open `ServiceDeskAnalytics.pbix` in Power BI Desktop or connect directly to `data/processed/tickets_processed.csv`.
 
