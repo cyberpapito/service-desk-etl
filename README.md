@@ -30,6 +30,9 @@ The raw data is intentionally messy — duplicate tickets, null departments, tec
 ## Dashboard
 
 Three-page Power BI dashboard built on top of the processed data.
+| Executive Dashboard | Technician Performance | Department Trends |
+|---|---|---|
+| ![Executive](assets/executive-dashboard.png) | ![Technician](assets/technician-dashboard.png) | ![Department](assets/department-dashboard.png) |
 
 **Executive Dashboard** — KPI cards (total tickets, open tickets, avg resolution time, SLA compliance %), ticket volume trend by month, ticket breakdown by category
 
