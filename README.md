@@ -123,15 +123,6 @@ Ten queries written against the star schema covering ticket volume trends, SLA c
 
 ---
 
-## What I'd add with more time
 
-- PostgreSQL swap — the schema is production-ready, SQLite is just for portability
-- Airflow DAG for scheduled daily runs
-- ServiceNow or Jira API as the extract source instead of CSV
-- pytest suite for the transform functions
-- Incremental loads instead of full reload on each run
-- Email alert when SLA compliance drops below threshold
 
----
 
-*Part of a portfolio built during a transition from IT systems administration into data engineering and BI roles.*
