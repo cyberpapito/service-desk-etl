@@ -75,6 +75,11 @@ PRIORITY_CANONICAL = {
     "4":           "P4-Low",
 }
 
+def normalize_priority_single(value: str) -> str:
+    """Normalize a single priority string — used for testing."""
+    key = str(value).strip().lower()
+    return PRIORITY_CANONICAL.get(key, "P3-Medium")
+
 SLA_HOURS = {
     "P1-Critical": 4,
     "P2-High":     24,
