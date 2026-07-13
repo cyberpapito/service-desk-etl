@@ -117,11 +117,7 @@ service-desk-etl/
 
 ---
 
-## SQL reporting queries
 
-Ten queries written against the star schema covering ticket volume trends, SLA compliance by priority and month, technician workload and performance, department analysis, top recurring issues, and an open ticket aging report with escalation risk flags.
-
----
 
 
 
