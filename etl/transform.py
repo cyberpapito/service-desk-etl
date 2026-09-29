@@ -32,7 +32,6 @@ TECHNICIAN_CANONICAL = {
     "john.smith":  "John Smith",
     "j. smith":    "John Smith",
     "john smith":  "John Smith",
-    "john.smith":  "John Smith",
     # Maria Garcia variants
     "maria.garcia": "Maria Garcia",
     "maria garcia": "Maria Garcia",
@@ -233,7 +232,7 @@ def calculate_aging(df: pd.DataFrame, as_of: pd.Timestamp = None) -> pd.DataFram
     as_of defaults to today if not provided.
     """
     df = df.copy()
-    as_of = as_of or pd.Timestamp.now()
+    as_of = pd.Timestamp.now() if as_of is None else pd.Timestamp(as_of)
 
     # For resolved tickets: age = resolution_hours
     # For open tickets: age = hours since created_at
@@ -248,7 +247,9 @@ def calculate_aging(df: pd.DataFrame, as_of: pd.Timestamp = None) -> pd.DataFram
     bins   = [0, 4, 24, 72, 168, float("inf")]
     labels = ["< 4h", "4–24h", "1–3 days", "3–7 days", "> 7 days"]
     df["age_bucket"] = pd.cut(df["age_hours"], bins=bins, labels=labels, right=False)
-    df["age_bucket"] = df["age_bucket"].astype(str)
+    # Missing or negative ages (bad created_at, or created after as_of) get no
+    # bucket — a real NULL, not the string "nan"
+    df["age_bucket"] = df["age_bucket"].astype(object).where(df["age_bucket"].notna(), None)
 
     return df
 
@@ -273,10 +274,11 @@ def add_date_dimensions(df: pd.DataFrame) -> pd.DataFrame:
 
 # ── Master Transform Pipeline ─────────────────────────────────────────────────
 
-def run_transforms(df: pd.DataFrame) -> pd.DataFrame:
+def run_transforms(df: pd.DataFrame, as_of: pd.Timestamp = None) -> pd.DataFrame:
     """
     Orchestrates all transformation steps in order.
     Returns the fully cleaned, enriched DataFrame ready for loading.
+    as_of is passed to calculate_aging (defaults to now).
     """
     logger.info("Starting transformation pipeline...")
 
@@ -298,7 +300,7 @@ def run_transforms(df: pd.DataFrame) -> pd.DataFrame:
     df = calculate_sla(df)
     logger.info("  ✓ Calculated SLA metrics")
 
-    df = calculate_aging(df)
+    df = calculate_aging(df, as_of=as_of)
     logger.info("  ✓ Calculated aging metrics")
 
     df = add_date_dimensions(df)

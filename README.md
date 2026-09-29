@@ -54,10 +54,11 @@ Three-page Power BI dashboard built on top of the processed data.
 
 ## Getting started
 
+```bash
 git clone https://github.com/cyberpapito/service-desk-etl.git
 cd service-desk-etl
 
-# Create and activate virtual environment
+# Create and activate virtual environment (Python 3.10+)
 python -m venv venv
 venv\Scripts\activate        # Windows
 source venv/bin/activate     # Mac/Linux
@@ -68,11 +69,16 @@ pip install -r requirements.txt
 # Generate sample data
 python etl/generate_data.py
 
-# Run the pipeline
-python etl/pipeline.py
+# Run the pipeline (the sample data covers 2024, so age open tickets as of year end)
+python etl/pipeline.py --as-of 2024-12-31
 
+# Run the tests
+pytest
+```
 
 The database lands at `data/processed/service_desk.db`. Open `ServiceDeskAnalytics.pbix` in Power BI Desktop or connect directly to `data/processed/tickets_processed.csv`.
+
+Without `--as-of`, open tickets are aged against the current date, which is what you want for live data.
 
 ---
 
@@ -105,12 +111,11 @@ service-desk-etl/
 ├── sql/
 │   ├── schema/create_tables.sql
 │   └── queries/reporting_queries.sql   # 10 BI queries
-├── docs/
-│   └── powerbi_setup.md
 ├── data/
 │   ├── raw/                 # source files (gitignored)
 │   ├── processed/           # database + clean CSV (gitignored)
 │   └── archive/             # timestamped raw file copies
+├── tests/                   # pytest suite: transforms + full pipeline run
 ├── ServiceDeskAnalytics.pbix
 └── requirements.txt
 ```
