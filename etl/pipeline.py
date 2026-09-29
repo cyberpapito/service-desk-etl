@@ -10,6 +10,7 @@ Usage:
     python etl/pipeline.py
     python etl/pipeline.py --input data/raw/tickets_raw.csv
     python etl/pipeline.py --db data/processed/service_desk.db
+    python etl/pipeline.py --as-of 2024-12-31
 """
 
 import argparse
@@ -26,17 +27,29 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from etl.transform import run_transforms
 from etl.load import run_load, DB_PATH
 
-# ── Logging Setup ─────────────────────────────────────────────────────────────
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s  %(levelname)-8s  %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler(os.path.join("data", "processed", "etl.log"), mode="a"),
-    ],
-)
 logger = logging.getLogger(__name__)
+
+PROCESSED_DIR = os.path.join("data", "processed")
+
+
+# ── Logging Setup ─────────────────────────────────────────────────────────────
+
+def setup_logging():
+    """
+    Log to stdout and data/processed/etl.log. Called from the CLI rather than at
+    import time, and creates the folder first — on a fresh clone data/processed/
+    doesn't exist yet (it's gitignored).
+    """
+    os.makedirs(PROCESSED_DIR, exist_ok=True)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s  %(levelname)-8s  %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+            logging.FileHandler(os.path.join(PROCESSED_DIR, "etl.log"), mode="a"),
+        ],
+    )
 
 
 # ── Extract ───────────────────────────────────────────────────────────────────
@@ -73,7 +86,7 @@ def archive_raw_file(input_path: str):
 
 # ── Pipeline Orchestrator ─────────────────────────────────────────────────────
 
-def run_pipeline(input_path: str, db_path: str, archive: bool = True):
+def run_pipeline(input_path: str, db_path: str, archive: bool = True, as_of: pd.Timestamp = None):
     """
     Full ETL pipeline: Extract → Transform → Load
 
@@ -82,6 +95,7 @@ def run_pipeline(input_path: str, db_path: str, archive: bool = True):
     input_path : path to raw CSV file
     db_path    : path to SQLite database
     archive    : if True, copy raw file to data/archive after processing
+    as_of      : "now" for aging open tickets; defaults to the current time
     """
     start = datetime.now()
     logger.info("=" * 60)
@@ -91,17 +105,18 @@ def run_pipeline(input_path: str, db_path: str, archive: bool = True):
     logger.info("=" * 60)
 
     # Ensure output directories exist
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    os.makedirs(PROCESSED_DIR, exist_ok=True)
+    os.makedirs(os.path.dirname(db_path) or ".", exist_ok=True)
 
     # ── EXTRACT ──
     raw_df = extract(input_path)
 
     # ── TRANSFORM ──
     logger.info("TRANSFORM: Running transformation steps...")
-    transformed_df = run_transforms(raw_df)
+    transformed_df = run_transforms(raw_df, as_of=as_of)
 
     # Save processed CSV for inspection / Power BI direct connection option
-    processed_csv = os.path.join("data", "processed", "tickets_processed.csv")
+    processed_csv = os.path.join(PROCESSED_DIR, "tickets_processed.csv")
     transformed_df.to_csv(processed_csv, index=False)
     logger.info(f"  ✓ Processed CSV saved → {processed_csv}")
 
@@ -137,10 +152,17 @@ if __name__ == "__main__":
         "--no-archive", action="store_true",
         help="Skip archiving the raw input file"
     )
+    parser.add_argument(
+        "--as-of", type=pd.Timestamp, default=None,
+        help="Date to age open tickets against (default: now). "
+             "Use 2024-12-31 for the generated sample data."
+    )
     args = parser.parse_args()
 
+    setup_logging()
     run_pipeline(
         input_path=args.input,
         db_path=args.db,
         archive=not args.no_archive,
+        as_of=args.as_of,
     )

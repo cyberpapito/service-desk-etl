@@ -98,9 +98,12 @@ def resolution_hours(priority: str) -> float | None:
     return round(lo + (hi - lo) * random.random() * multiplier, 2)
 
 
+SLA_TARGETS = {"P1-Critical": 4, "P2-High": 24, "P3-Medium": 72, "P4-Low": 168}
+
+
 def sla_target(priority: str) -> int:
-    """Returns SLA target in hours by priority."""
-    return {"P1-Critical": 4, "P2-High": 24, "P3-Medium": 72, "P4-Low": 168}[priority]
+    """Returns SLA target in hours by priority; invalid priorities get the P3 default."""
+    return SLA_TARGETS.get(priority, 72)
 
 
 # ── Main Generation ───────────────────────────────────────────────────────────
@@ -145,7 +148,7 @@ def generate_tickets(n: int) -> pd.DataFrame:
             "technician":       tech,
             "department":       dept,
             "resolution_hours": res_hours,
-            "sla_target_hours": sla_target(priority) if priority in sla_target.__doc__ else 72,
+            "sla_target_hours": sla_target(priority),
         })
 
     df = pd.DataFrame(rows)
